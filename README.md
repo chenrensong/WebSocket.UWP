@@ -4,8 +4,9 @@ WebSocket.Net是基于Windows.Networking.Sockets.StreamSocket的WebSocket客户�
 
 # 支持平台
 Windows 8.1
+
 Windows Phone 8.1
 
-Nuget
+# Nuget
 ``` c#
 PM> Install-Package WebSocket.Net
