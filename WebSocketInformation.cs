@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.Networking;
 using Windows.Networking.Sockets;
 
-namespace TinyWebSocket
+namespace WebSocketNet
 {
     public class WebSocketInformation : IWebSocketInformation
     {

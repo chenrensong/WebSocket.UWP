@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TinyWebSocket.ToolBox
+namespace WebSocketNet.ToolBox
 {
     public class Arrays
     {
-        public static int binarySearch(int[] a, int key)
+        public static int BinarySearch(int[] a, int key)
         {
-            return binarySearch0(a, 0, a.Length, key);
+            return BinarySearch(a, 0, a.Length, key);
         }
 
-        public static byte[] copyOfRange(byte[] original, int from, int to)
+        public static byte[] CopyOfRange(byte[] original, int from, int to)
         {
             int newLength = to - from;
             if (newLength < 0)
@@ -25,7 +25,7 @@ namespace TinyWebSocket.ToolBox
         }
 
 
-        private static int binarySearch0(int[] a, int fromIndex, int toIndex, int key)
+        private static int BinarySearch(int[] a, int fromIndex, int toIndex, int key)
         {
             int low = fromIndex;
             int high = toIndex - 1;

@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TinyWebSocket.ToolBox;
+using WebSocketNet.ToolBox;
 using Windows.Storage.Streams;
 
-namespace TinyWebSocket
+namespace WebSocketNet
 {
     /*
   0                   1                   2                   3
@@ -105,11 +105,11 @@ namespace TinyWebSocket
 
             frame.opCode = (data & OPCODE);
 
-            if (Arrays.binarySearch(OPCODES, frame.opCode) < 0)
+            if (Arrays.BinarySearch(OPCODES, frame.opCode) < 0)
             {
                 throw new Exception("Bad opcode");
             }
-            if (Arrays.binarySearch(CTRL_OPCODES, frame.opCode) >= 0 && !frame.isFinal)
+            if (Arrays.BinarySearch(CTRL_OPCODES, frame.opCode) >= 0 && !frame.isFinal)
             {
                 throw new Exception("In control opcode, must set FIN");
             }

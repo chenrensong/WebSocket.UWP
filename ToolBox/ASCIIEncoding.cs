@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TinyWebSocket.ToolBox
+namespace WebSocketNet.ToolBox
 {
+    /// <summary>
+    /// Windows Runtime 不支持ASCII 编码
+    /// </summary>
     public class ASCIIEncoding : Encoding
     {
-        private static ASCIIEncoding m_Instance;
+        private static ASCIIEncoding instance;
         private char? fallbackCharacter;
         private static char[] byteToChar;
         private static Dictionary<char, byte> charToByte;
@@ -16,7 +19,7 @@ namespace TinyWebSocket.ToolBox
         {
             get
             {
-                return ASCIIEncoding.m_Instance;
+                return ASCIIEncoding.instance;
             }
         }
         public override string WebName
@@ -58,7 +61,7 @@ namespace TinyWebSocket.ToolBox
         }
         static ASCIIEncoding()
         {
-            ASCIIEncoding.m_Instance = null;
+            ASCIIEncoding.instance = null;
             ASCIIEncoding.byteToChar = new char[]
 			{
 				'\0',
@@ -320,7 +323,7 @@ namespace TinyWebSocket.ToolBox
             dictionary.Add('~', 126);
             dictionary.Add('\u007f', 127);
             ASCIIEncoding.charToByte = dictionary;
-            ASCIIEncoding.m_Instance = new ASCIIEncoding();
+            ASCIIEncoding.instance = new ASCIIEncoding();
         }
         public override int GetHashCode()
         {

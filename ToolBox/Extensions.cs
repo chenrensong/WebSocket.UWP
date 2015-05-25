@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
-namespace TinyWebSocket.ToolBox
+namespace WebSocketNet.ToolBox
 {
     public static class Extensions
     {

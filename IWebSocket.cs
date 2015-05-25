@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage.Streams;
 
-namespace TinyWebSocket
+namespace WebSocketNet
 {
     /// <summary>
     /// WebSocket接口

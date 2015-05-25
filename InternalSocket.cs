@@ -9,7 +9,7 @@ using Windows.Networking.Connectivity;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 
-namespace TinyWebSocket
+namespace WebSocketNet
 {
     /// <summary>
     /// 内部Socket实现
