@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WebSocket4UWP.ToolBox
+﻿namespace WebSocket4UWP.ToolBox
 {
 
     /**
@@ -49,7 +43,7 @@ namespace WebSocket4UWP.ToolBox
          *           contains at least one more element to provide;
          *          <code>false</code> otherwise.
          */
-        bool hasMoreElements();
+        bool HasMoreElements();
 
         /**
          * Returns the next element of this enumeration if this enumeration
@@ -58,7 +52,7 @@ namespace WebSocket4UWP.ToolBox
          * @return     the next element of this enumeration.
          * @exception  NoSuchElementException  if no more elements exist.
          */
-        E nextElement();
+        E NextElement();
     }
 
 }

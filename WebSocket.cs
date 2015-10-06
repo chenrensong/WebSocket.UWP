@@ -2,53 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Core;
-using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
 using WebSocket4UWP.ToolBox;
 using Windows.Foundation;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Networking.Sockets;
 
 namespace WebSocket4UWP
 {
 
-    /**
-     * 
-     It's rewritten code of Eric Butler Android Web Socket <eric@codebutler.com>
-     * 
-     * - removed Android API (thread) - removed double arithmetic usage from Web
-     * Socket header parser - added naive Web Server Socket
-     * 
-     * 
-     * The MIT Licence
-     * 
-     * 
-     * Copyright (c) 2009-2012 James Coglan Copyright (c) 2012 Eric Butler Copyright
-     * (c) 2013 Igor Kolosov
-     * 
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the 'Software'), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     * 
-     * The above copyright notice and this permission notice shall be included in
-     * all copies or substantial portions of the Software.
-     * 
-     * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
-     */
     public partial class WebSocket : IWebSocket, IDisposable
     {
 
@@ -60,7 +24,6 @@ namespace WebSocket4UWP
         /// 魔法数
         /// </summary>
         private const string MAGIC_NUM = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
 
         private Uri _uri;
         private InternalSocket _socket;
@@ -101,18 +64,6 @@ namespace WebSocket4UWP
             this.Information = new WebSocketInformation();
         }
 
-        event TypedEventHandler<IWebSocket, Windows.Networking.Sockets.WebSocketClosedEventArgs> IWebSocket.Closed
-        {
-            add
-            {
-                throw new NotImplementedException();
-            }
-
-            remove
-            {
-                throw new NotImplementedException();
-            }
-        }
 
         private void ResetBuffer()
         {
@@ -186,7 +137,7 @@ namespace WebSocket4UWP
                     {
                         code = ((frame.payload[0] << 8) | (frame.payload[1] & 0xFF)) & 0xFFFF;
                     }
-                    String reason = null;
+                    string reason = null;
                     if (frame.payload.Length > 2)
                     {
                         reason = frame.payload.CopyOfRange(2, frame.payload.Length).BytesToString();
@@ -274,14 +225,14 @@ namespace WebSocket4UWP
                               throw new Exception("Received no reply from server.");
                           }
                           Http.StatusLine statusLine = new Http.StatusLine(startLine);
-                          int statusCode = statusLine.getStatusCode();
+                          int statusCode = statusLine.StatusCode;
                           if (statusCode != 101)
                           {
                               throw new Exception("wrong HTTP response code: " + statusCode);
                           }
 
                           // Read HTTP response headers.
-                          String line;
+                          string line;
                           while ((line = await ReadLine(reader)) != null && line.Length > 0)
                           {
                               Http.Header header = new Http.Header(line);
@@ -289,8 +240,8 @@ namespace WebSocket4UWP
 
                               if (header.HeaderName.Equals("Sec-WebSocket-Accept", StringComparison.OrdinalIgnoreCase))
                               {
-                                  String receivedAccept = header.HeaderValue;
-                                  String shouldBeAccept = CreateAccept(key);
+                                  string receivedAccept = header.HeaderValue;
+                                  string shouldBeAccept = CreateAccept(key);
                                   if (!receivedAccept.Equals(shouldBeAccept))
                                       throw new Exception("Wrong Sec-WebSocket-Accept: " + receivedAccept + " should be: " + shouldBeAccept);
                               }
@@ -375,7 +326,7 @@ namespace WebSocket4UWP
             await SendFragment(data, true, true);
         }
 
-        public async Task SendFragment(String str, bool isFirst, bool isLast)
+        public async Task SendFragment(string str, bool isFirst, bool isLast)
         {
             if (_closed)
             {
@@ -433,7 +384,7 @@ namespace WebSocket4UWP
 
 
 
-        private async Task<String> ReadLine(DataReader reader)
+        private async Task<string> ReadLine(DataReader reader)
         {
             StringBuilder stringBuilder = new StringBuilder();
             await reader.LoadAsync(sizeof(byte));
@@ -468,16 +419,16 @@ namespace WebSocket4UWP
             return Convert.ToBase64String(hashedData.BufferToBytes());
         }
 
-        private static String CreateSecKey()
+        private static string CreateSecKey()
         {
             return Convert.ToBase64String(Encoding.ASCII.GetBytes(
                 Guid.NewGuid().ToString().Substring(0, 16))); ;
         }
 
 
-        private static String CreateAccept(String key)
+        private static string CreateAccept(string key)
         {
-            String str = key + MAGIC_NUM;
+            string str = key + MAGIC_NUM;
             byte[] inData = null;
             try
             {
@@ -488,11 +439,7 @@ namespace WebSocket4UWP
                 throw new Exception("ASCII encoding is not supported");
             }
             return GenerateHashedString(inData);
-
-
         }
-
-
 
 
 
@@ -606,5 +553,6 @@ namespace WebSocket4UWP
             await SendFrame(frame);
             Disconnect();
         }
+
     }
 }

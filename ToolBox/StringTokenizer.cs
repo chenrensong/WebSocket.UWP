@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WebSocket4UWP.ToolBox
 {
@@ -57,12 +54,12 @@ namespace WebSocket4UWP.ToolBox
      * <tt>StringTokenizer</tt> is a legacy class that is retained for
      * compatibility reasons although its use is discouraged in new code. It is
      * recommended that anyone seeking this functionality use the <tt>split</tt>
-     * method of <tt>String</tt> or the java.util.regex package instead.
+     * method of <tt>string</tt> or the java.util.regex package instead.
      * <p>
-     * The following example illustrates how the <tt>String.split</tt>
+     * The following example illustrates how the <tt>string.split</tt>
      * method can be used to break up a string into its basic tokens:
      * <blockquote><pre>
-     *     String[] result = "this is a test".split("\\s");
+     *     string[] result = "this is a test".split("\\s");
      *     for (int x=0; x&lt;result.length; x++)
      *         System.out.println(result[x]);
      * </pre></blockquote>
@@ -79,16 +76,17 @@ namespace WebSocket4UWP.ToolBox
      * @see     java.io.StreamTokenizer
      * @since   JDK1.0
      */
-    public class StringTokenizer : Enumeration<Object>
+    public class StringTokenizer : Enumeration<object>
     {
         private int currentPosition;
         private int newPosition;
         private int maxPosition;
-        private String str;
-        private String delimiters;
+        private string str;
+        private string delimiters;
         private bool retDelims;
         private bool delimsChanged;
-
+       
+     
         /**
          * maxDelimCodePoint stores the value of the delimiter character with the
          * highest value. It is used to optimize the detection of delimiter
@@ -104,7 +102,7 @@ namespace WebSocket4UWP.ToolBox
         /**
          * If delimiters include any surrogates (including surrogate
          * pairs), hasSurrogates is true and the tokenizer uses the
-         * different code path. This is because String.indexOf(int)
+         * different code path. This is because string.indexOf(int)
          * doesn't handle unpaired surrogates as a single character.
          */
         private bool hasSurrogates = false;
@@ -119,7 +117,7 @@ namespace WebSocket4UWP.ToolBox
         /**
          * Set maxDelimCodePoint to the highest char in the delimiter set.
          */
-        private void setMaxDelimCodePoint()
+        private void SetMaxDelimCodePoint()
         {
             if (delimiters == null)
             {
@@ -130,12 +128,12 @@ namespace WebSocket4UWP.ToolBox
             int m = 0;
             int c;
             int count = 0;
-            for (int i = 0; i < delimiters.Length; i += Character.charCount(c))
+            for (int i = 0; i < delimiters.Length; i += Character.CharCount(c))
             {
                 c = delimiters[i];
                 if (c >= Character.MIN_HIGH_SURROGATE && c <= Character.MAX_LOW_SURROGATE)
                 {
-                    c = delimiters.codePointAt(i);
+                    c = delimiters.CodePointAt(i);
                     hasSurrogates = true;
                 }
                 if (m < c)
@@ -147,9 +145,9 @@ namespace WebSocket4UWP.ToolBox
             if (hasSurrogates)
             {
                 delimiterCodePoints = new int[count];
-                for (int i = 0, j = 0; i < count; i++, j += Character.charCount(c))
+                for (int i = 0, j = 0; i < count; i++, j += Character.CharCount(c))
                 {
-                    c = delimiters.codePointAt(j);
+                    c = delimiters.CodePointAt(j);
                     delimiterCodePoints[i] = c;
                 }
             }
@@ -177,7 +175,7 @@ namespace WebSocket4UWP.ToolBox
          *                         as tokens.
          * @exception NullPointerException if str is <CODE>null</CODE>
          */
-        public StringTokenizer(String str, String delim, bool returnDelims)
+        public StringTokenizer(string str, string delim, bool returnDelims)
         {
             currentPosition = 0;
             newPosition = -1;
@@ -186,7 +184,7 @@ namespace WebSocket4UWP.ToolBox
             maxPosition = str.Length;
             delimiters = delim;
             retDelims = returnDelims;
-            setMaxDelimCodePoint();
+            SetMaxDelimCodePoint();
         }
 
         /**
@@ -204,7 +202,7 @@ namespace WebSocket4UWP.ToolBox
          * @param   delim   the delimiters.
          * @exception NullPointerException if str is <CODE>null</CODE>
          */
-        public StringTokenizer(String str, String delim)
+        public StringTokenizer(string str, string delim)
             : this(str, delim, false)
         {
 
@@ -221,7 +219,7 @@ namespace WebSocket4UWP.ToolBox
          * @param   str   a string to be parsed.
          * @exception NullPointerException if str is <CODE>null</CODE>
          */
-        public StringTokenizer(String str)
+        public StringTokenizer(string str)
             : this(str, " \t\n\r\f", false)
         {
 
@@ -232,7 +230,7 @@ namespace WebSocket4UWP.ToolBox
          * is false, returns the index of the first non-delimiter character at or
          * after startPos. If retDelims is true, startPos is returned.
          */
-        private int skipDelimiters(int startPos)
+        private int SkipDelimiters(int startPos)
         {
             if (delimiters == null)
                 throw new NullReferenceException();
@@ -249,12 +247,12 @@ namespace WebSocket4UWP.ToolBox
                 }
                 else
                 {
-                    int c = str.codePointAt(position);
-                    if ((c > maxDelimCodePoint) || !isDelimiter(c))
+                    int c = str.CodePointAt(position);
+                    if ((c > maxDelimCodePoint) || !IsDelimiter(c))
                     {
                         break;
                     }
-                    position += Character.charCount(c);
+                    position += Character.CharCount(c);
                 }
             }
             return position;
@@ -278,10 +276,10 @@ namespace WebSocket4UWP.ToolBox
                 }
                 else
                 {
-                    int c = str.codePointAt(position);
-                    if ((c <= maxDelimCodePoint) && isDelimiter(c))
+                    int c = str.CodePointAt(position);
+                    if ((c <= maxDelimCodePoint) && IsDelimiter(c))
                         break;
-                    position += Character.charCount(c);
+                    position += Character.CharCount(c);
                 }
             }
             if (retDelims && (startPos == position))
@@ -294,15 +292,15 @@ namespace WebSocket4UWP.ToolBox
                 }
                 else
                 {
-                    int c = str.codePointAt(position);
-                    if ((c <= maxDelimCodePoint) && isDelimiter(c))
-                        position += Character.charCount(c);
+                    int c = str.CodePointAt(position);
+                    if ((c <= maxDelimCodePoint) && IsDelimiter(c))
+                        position += Character.CharCount(c);
                 }
             }
             return position;
         }
 
-        private bool isDelimiter(int codePoint)
+        private bool IsDelimiter(int codePoint)
         {
             for (int i = 0; i < delimiterCodePoints.Length; i++)
             {
@@ -323,14 +321,14 @@ namespace WebSocket4UWP.ToolBox
          *          in the string after the current position; <code>false</code>
          *          otherwise.
          */
-        public bool hasMoreTokens()
+        public bool HasMoreTokens()
         {
             /*
              * Temporarily store this position and use it in the following
              * nextToken() method only if the delimiters haven't been changed in
              * that nextToken() invocation.
              */
-            newPosition = skipDelimiters(currentPosition);
+            newPosition = SkipDelimiters(currentPosition);
             return (newPosition < maxPosition);
         }
 
@@ -341,7 +339,7 @@ namespace WebSocket4UWP.ToolBox
          * @exception  NoSuchElementException  if there are no more tokens in this
          *               tokenizer's string.
          */
-        public String nextToken()
+        public string NextToken()
         {
             /*
              * If next position already computed in hasMoreElements() and
@@ -350,7 +348,7 @@ namespace WebSocket4UWP.ToolBox
              */
 
             currentPosition = (newPosition >= 0 && !delimsChanged) ?
-                newPosition : skipDelimiters(currentPosition);
+                newPosition : SkipDelimiters(currentPosition);
 
             /* Reset these anyway */
             delimsChanged = false;
@@ -378,15 +376,15 @@ namespace WebSocket4UWP.ToolBox
          *               tokenizer's string.
          * @exception NullPointerException if delim is <CODE>null</CODE>
          */
-        public String nextToken(String delim)
+        public string NextToken(string delim)
         {
             delimiters = delim;
 
             /* delimiter string specified, so set the appropriate flag. */
             delimsChanged = true;
 
-            setMaxDelimCodePoint();
-            return nextToken();
+            SetMaxDelimCodePoint();
+            return NextToken();
         }
 
         /**
@@ -399,15 +397,15 @@ namespace WebSocket4UWP.ToolBox
          * @see     java.util.Enumeration
          * @see     java.util.StringTokenizer#hasMoreTokens()
          */
-        public bool hasMoreElements()
+        public bool HasMoreElements()
         {
-            return hasMoreTokens();
+            return HasMoreTokens();
         }
 
         /**
          * Returns the same value as the <code>nextToken</code> method,
-         * except that its declared return value is <code>Object</code> rather than
-         * <code>String</code>. It exists so that this class can implement the
+         * except that its declared return value is <code>object</code> rather than
+         * <code>string</code>. It exists so that this class can implement the
          * <code>Enumeration</code> interface.
          *
          * @return     the next token in the string.
@@ -416,9 +414,9 @@ namespace WebSocket4UWP.ToolBox
          * @see        java.util.Enumeration
          * @see        java.util.StringTokenizer#nextToken()
          */
-        public Object nextElement()
+        public object NextElement()
         {
-            return nextToken();
+            return NextToken();
         }
 
         /**
@@ -430,13 +428,13 @@ namespace WebSocket4UWP.ToolBox
          *          delimiter set.
          * @see     java.util.StringTokenizer#nextToken()
          */
-        public int countTokens()
+        public int CountTokens()
         {
             int count = 0;
             int currpos = currentPosition;
             while (currpos < maxPosition)
             {
-                currpos = skipDelimiters(currpos);
+                currpos = SkipDelimiters(currpos);
                 if (currpos >= maxPosition)
                     break;
                 currpos = scanToken(currpos);

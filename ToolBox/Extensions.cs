@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
 namespace WebSocket4UWP.ToolBox
 {
+    /// <summary>
+    /// 扩展方法类
+    /// </summary>
     public static class Extensions
     {
 
@@ -65,18 +65,18 @@ namespace WebSocket4UWP.ToolBox
             return stream;
         }
 
-        public static int codePointAt(this string value, int index)
+        public static int CodePointAt(this string value, int index)
         {
-            return codePointAt(value.ToCharArray(), index);
+            return CodePointAt(value.ToCharArray(), index);
         }
 
-        public static int codePointAt(this char[] value, int index)
+        public static int CodePointAt(this char[] value, int index)
         {
             if ((index < 0) || (index >= value.Length))
             {
                 throw new IndexOutOfRangeException(index + "");
             }
-            return Character.codePointAtImpl(value, index, value.Length);
+            return Character.CodePointAtImpl(value, index, value.Length);
         }
 
         public static byte[] BufferToBytes(this IBuffer buf)

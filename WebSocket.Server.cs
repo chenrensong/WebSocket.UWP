@@ -19,39 +19,39 @@ namespace WebSocket4UWP
                     DataReader stream = new DataReader(this._socket.InputStream);
 
                     // Read HTTP request line.
-                    String startLine = await this.ReadLine(stream);
+                    string startLine = await this.ReadLine(stream);
                     if (startLine == null)
                     {
                         throw new Exception("Cannot read HTTP request start line");
                     }
 
                     Http.RequestLine requestLine = new Http.RequestLine(startLine);
-                    this._uri = new Uri(requestLine.getRequestURI()); // can be checked in
+                    this._uri = new Uri(requestLine.RequestURI); // can be checked in
                     // onConnect()
 
                     // Read HTTP response headers
                     Dictionary<string, string> map = new Dictionary<string, string>();
-                    String line;
+                    string line;
                     while ((line = await this.ReadLine(stream)) != null && line.Length > 0)
                     {
                         Http.Header header = new Http.Header(line);
                         map.Add(header.HeaderName.ToLower(), header.HeaderValue);
                     }
 
-                    String value = map["sec-websocket-version"];
+                    string value = map["sec-websocket-version"];
                     if (!"13".Equals(value))
                         throw new IOException("wrong Sec-WebSocket-Version");
 
-                    String key = map["sec-websocket-key"];
+                    string key = map["sec-websocket-key"];
                     if (key == null)
                         throw new IOException("missed Sec-WebSocket-Key");
-                    String accept = CreateAccept(key);
+                    string accept = CreateAccept(key);
 
-                    String upgrade = map["upgrade"];
+                    string upgrade = map["upgrade"];
                     if (upgrade == null || !upgrade.Equals("websocket", StringComparison.OrdinalIgnoreCase))
                         throw new IOException("wrong Upgrade");
 
-                    String connection = map["connection"];
+                    string connection = map["connection"];
                     if (connection == null || !connection.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
                         throw new IOException("wrong Connection");
 
@@ -65,8 +65,8 @@ namespace WebSocket4UWP
                         throw new IOException("Missed 'Origin' header");
 
                     // Some naive protocol selection.
-                    String protocols = map["sec-websocket-protocol"];
-                    String selectedProtocol = null;
+                    string protocols = map["sec-websocket-protocol"];
+                    string selectedProtocol = null;
                     if (protocols != null && protocols.Contains("chat"))
                         selectedProtocol = "chat";
 

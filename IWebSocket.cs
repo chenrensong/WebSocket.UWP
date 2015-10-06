@@ -34,7 +34,7 @@ namespace WebSocket4UWP
         //
         //   reason:
         //     包含有关关闭的其他信息的可选 UTF-8 编码数据。
-        Task Close(int code, string reason);
+        void Close(ushort code, string reason);
         //
         // 摘要: 
         //     启动 IWebSocket 对象连接到远程网络目标的异步操作。

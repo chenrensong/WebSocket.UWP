@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WebSocket4UWP.ToolBox;
 
 namespace WebSocket4UWP
@@ -22,7 +18,7 @@ namespace WebSocket4UWP
                 this.headerValue = headerValue;
             }
 
-            public Header(String line)
+            public Header(string line)
             {
                 int colon = line.IndexOf(':');
                 if (colon == -1)
@@ -37,7 +33,6 @@ namespace WebSocket4UWP
             {
                 return headerName + ": " + headerValue;
             }
-
 
             public string HeaderName
             {
@@ -59,73 +54,93 @@ namespace WebSocket4UWP
         // Method SP Request-URI SP HTTP-Version CRLF
         public class RequestLine
         {
-            String method;
-            String requestURI;
-            String httpVersion;
+            private string method;
+            private string requestURI;
+            private string httpVersion;
 
-            public String getMethod()
+            public string Method
             {
-                return method;
+                get
+                {
+                    return method;
+                }
             }
 
-            public String getRequestURI()
+
+
+            public string RequestURI
             {
-                return requestURI;
+                get
+                {
+                    return requestURI;
+                }
             }
 
-            public String getHttpVersion()
+            public string HttpVersion
             {
-                return httpVersion;
+                get
+                {
+                    return httpVersion;
+                }
             }
 
-            public RequestLine(String method, String requestURI, String httpVersion)
+            public RequestLine(string method, string requestURI, string httpVersion)
             {
                 this.method = method;
                 this.requestURI = requestURI;
                 this.httpVersion = httpVersion;
             }
 
-            public String toString()
+            public override string ToString()
             {
                 return method + " " + requestURI + " " + httpVersion;
             }
 
-            public RequestLine(String line)
+            public RequestLine(string line)
             {
                 StringTokenizer st = new StringTokenizer(line);
-                method = st.nextToken();
-                requestURI = st.nextToken();
-                httpVersion = st.nextToken();
+                method = st.NextToken();
+                requestURI = st.NextToken();
+                httpVersion = st.NextToken();
             }
         }
 
         public class StatusLine
         {
-            public String getHttpVersion()
+            public string HttpVersion
             {
-                return httpVersion;
+                get
+                {
+                    return httpVersion;
+                }
             }
 
-            public int getStatusCode()
+            public int StatusCode
             {
-                return statusCode;
+                get
+                {
+                    return statusCode;
+                }
             }
 
-            public String getReasonPhrase()
+            public string ReasonPhrase
             {
-                return reasonPhrase;
+                get
+                {
+                    return reasonPhrase;
+                }
             }
 
-            String httpVersion;
-            int statusCode;
-            String reasonPhrase;
+            private string httpVersion;
+            private int statusCode;
+            private string reasonPhrase;
 
-            public String toString()
+            public override string ToString()
             {
                 return httpVersion + " " + statusCode + " " + reasonPhrase;
             }
-
-            public StatusLine(String httpVersion, int statusCode, String reasonPhrase)
+   
+            public StatusLine(string httpVersion, int statusCode, string reasonPhrase)
             {
                 if (statusCode < 100 || statusCode > 999)
                     throw new Exception("status code must be XXX");
@@ -134,7 +149,7 @@ namespace WebSocket4UWP
                 this.reasonPhrase = reasonPhrase;
             }
 
-            public StatusLine(String line)
+            public StatusLine(string line)
             {
                 int colon1 = line.IndexOf(' ');
                 if (colon1 == -1)
@@ -143,7 +158,7 @@ namespace WebSocket4UWP
                 int colon2 = line.IndexOf(' ', colon1 + 1);
                 if (colon2 == -1)
                     throw new Exception("wrong status line - no the 2nd space");
-                String strStatusCode = line.Substring(colon1 + 1, colon2 - colon1 - 1);
+                string strStatusCode = line.Substring(colon1 + 1, colon2 - colon1 - 1);
                 statusCode = Convert.ToInt32(strStatusCode);
                 if (statusCode < 100 || statusCode > 999)
                     throw new Exception("status code must be XXX");

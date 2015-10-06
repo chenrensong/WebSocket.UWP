@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using WebSocket4UWP.ToolBox;
 using Windows.Storage.Streams;
 
 namespace WebSocket4UWP
@@ -33,7 +29,7 @@ namespace WebSocket4UWP
   Opcode:  4 bits Defines the interpretation of the "Payload data.
 
   */
-    public class FrameParser
+    internal sealed class FrameParser
     {
         public static Random random = new Random();
 
@@ -105,7 +101,7 @@ namespace WebSocket4UWP
 
             frame.opCode = (data & OPCODE);
 
-            
+
 
             if (Array.BinarySearch<int>(OPCODES, frame.opCode) < 0)
             {
