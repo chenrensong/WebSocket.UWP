@@ -9,7 +9,7 @@ using Windows.Networking.Connectivity;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
     /// <summary>
     /// 内部Socket实现
@@ -86,6 +86,7 @@ namespace WebSocketNet
         {
             return _streamSocket.ConnectAsync(remoteHostName, remoteServiceName, protectionLevel, adapter);
         }
+
         public void Dispose()
         {
             _streamSocket.Dispose();
@@ -94,8 +95,9 @@ namespace WebSocketNet
         public IAsyncAction UpgradeToSslAsync(string host)
         {
             var hostName = new HostName(host);
-            return UpgradeToSslAsync(SocketProtectionLevel.Ssl, hostName);
+            return UpgradeToSslAsync(SocketProtectionLevel.Tls12, hostName);
         }
+
         public IAsyncAction UpgradeToSslAsync(SocketProtectionLevel protectionLevel, HostName validationHostName)
         {
             return _streamSocket.UpgradeToSslAsync(protectionLevel, validationHostName);

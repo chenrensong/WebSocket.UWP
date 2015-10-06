@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage.Streams;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
     /// <summary>
     /// WebSocket接口

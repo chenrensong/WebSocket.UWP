@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
     public sealed class WebSocketClosedEventArgs
     {

@@ -9,13 +9,46 @@ using Windows.ApplicationModel.Core;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
-using WebSocketNet.ToolBox;
+using WebSocket4UWP.ToolBox;
 using Windows.Foundation;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Networking.Sockets;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
 
+    /**
+     * 
+     It's rewritten code of Eric Butler Android Web Socket <eric@codebutler.com>
+     * 
+     * - removed Android API (thread) - removed double arithmetic usage from Web
+     * Socket header parser - added naive Web Server Socket
+     * 
+     * 
+     * The MIT Licence
+     * 
+     * 
+     * Copyright (c) 2009-2012 James Coglan Copyright (c) 2012 Eric Butler Copyright
+     * (c) 2013 Igor Kolosov
+     * 
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the 'Software'), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     * 
+     * The above copyright notice and this permission notice shall be included in
+     * all copies or substantial portions of the Software.
+     * 
+     * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     */
     public partial class WebSocket : IWebSocket, IDisposable
     {
 
@@ -49,7 +82,6 @@ namespace WebSocketNet
         public event EventHandler<Exception> OnError;
         public event EventHandler<byte[]> OnPong;
 
-
         public WebSocketControl Control { get; private set; }
 
         public WebSocketInformation Information { get; private set; }
@@ -69,6 +101,18 @@ namespace WebSocketNet
             this.Information = new WebSocketInformation();
         }
 
+        event TypedEventHandler<IWebSocket, Windows.Networking.Sockets.WebSocketClosedEventArgs> IWebSocket.Closed
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         private void ResetBuffer()
         {
@@ -145,7 +189,7 @@ namespace WebSocketNet
                     String reason = null;
                     if (frame.payload.Length > 2)
                     {
-                        reason = Arrays.CopyOfRange(frame.payload, 2, frame.payload.Length).BytesToString();
+                        reason = frame.payload.CopyOfRange(2, frame.payload.Length).BytesToString();
                     }
                     if (this.Closed != null)
                     {
@@ -277,7 +321,6 @@ namespace WebSocketNet
                                   await ProcessIncomingFrame(frame);
                               }
 
-
                           }
                       }
                       catch (IOException ex)
@@ -364,7 +407,6 @@ namespace WebSocketNet
         }
 
 
-
         private async Task SendFrame(byte[] frame)
         {
             await Task.Factory.StartNew(async () =>
@@ -418,29 +460,18 @@ namespace WebSocketNet
         }
 
 
-
-
-
-
-
-
         private static string GenerateHashedString(byte[] b)
         {
             var algorithm = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha1);
-            //var buffer = CryptographicBuffer.ConvertStringToBinary(stringToBeHashed, BinaryStringEncoding.Utf8);
             var buffer = b.BytesToBuffer();
             var hashedData = algorithm.HashData(buffer);
-            //return CryptographicBuffer.EncodeToHexString(hashedData);
-
             return Convert.ToBase64String(hashedData.BufferToBytes());
         }
 
         private static String CreateSecKey()
         {
-            //byte[] nonce = new byte[16];
-            //FrameParser.random.NextBytes(nonce);
-            //return Convert.ToBase64String(nonce);
-            return Convert.ToBase64String(ASCIIEncoding.Instance.GetBytes(Guid.NewGuid().ToString().Substring(0, 16))); ;
+            return Convert.ToBase64String(Encoding.ASCII.GetBytes(
+                Guid.NewGuid().ToString().Substring(0, 16))); ;
         }
 
 
@@ -450,7 +481,7 @@ namespace WebSocketNet
             byte[] inData = null;
             try
             {
-                inData = ASCIIEncoding.Instance.GetBytes(str);
+                inData = Encoding.ASCII.GetBytes(str);
             }
             catch (Exception ex)
             {
@@ -461,33 +492,7 @@ namespace WebSocketNet
 
         }
 
-        public async Task Close(int code, string reason)
-        {
-            if (_closed)
-            {
-                return;
-            }
 
-            byte[] data = null;
-            if (reason != null && reason.Length > 0)
-            {
-                try
-                {
-                    data = Encoding.UTF8.GetBytes(reason);
-                }
-                catch (Exception e)
-                {
-                    data = new byte[0];
-                }
-            }
-            else
-            {
-                data = new byte[0];
-            }
-            byte[] frame = FrameParser.BuildFrame(data, FrameParser.OP_CLOSE, code, IS_CLIENT, true);
-            await SendFrame(frame);
-            Disconnect();
-        }
 
 
 
@@ -519,12 +524,13 @@ namespace WebSocketNet
             }
             foreach (var item in this._serverResponseHeaders)
             {
-                if (item.HeaderName == headerName)
+                if (item.HeaderName != null && item.HeaderName.Equals(headerName))
                 {
                     return item.HeaderValue;
                 }
             }
             return null;
+
         }
 
 
@@ -539,7 +545,6 @@ namespace WebSocketNet
             {
                 this._extraRequestHeaders = new List<Http.Header>();
             }
-
             this._extraRequestHeaders.Add(new Http.Header(headerName, headerValue));
         }
 
@@ -564,7 +569,6 @@ namespace WebSocketNet
             {
                 return;
             }
-
             if (disposing)
             {
                 if (this._socket != null)
@@ -573,8 +577,34 @@ namespace WebSocketNet
                     this._socket = null;
                 }
             }
-
             _disposed = true;
+        }
+
+        public async void Close(ushort code, string reason)
+        {
+            if (_closed)
+            {
+                return;
+            }
+            byte[] data = null;
+            if (reason != null && reason.Length > 0)
+            {
+                try
+                {
+                    data = Encoding.UTF8.GetBytes(reason);
+                }
+                catch (Exception e)
+                {
+                    data = new byte[0];
+                }
+            }
+            else
+            {
+                data = new byte[0];
+            }
+            byte[] frame = FrameParser.BuildFrame(data, FrameParser.OP_CLOSE, code, IS_CLIENT, true);
+            await SendFrame(frame);
+            Disconnect();
         }
     }
 }

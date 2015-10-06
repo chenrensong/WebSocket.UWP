@@ -6,10 +6,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
-namespace WebSocketNet.ToolBox
+namespace WebSocket4UWP.ToolBox
 {
     public static class Extensions
     {
+
+        public static byte[] CopyOfRange(this byte[] original, int from, int to)
+        {
+            int newLength = to - from;
+            if (newLength < 0)
+                throw new Exception(from + " > " + to);
+            byte[] copy = new byte[newLength];
+            Array.Copy(original, from, copy, 0,
+                             Math.Min(original.Length - from, newLength));
+            return copy;
+        }
 
         public static byte[] StringToBytes(this string str)
         {
@@ -70,25 +81,18 @@ namespace WebSocketNet.ToolBox
 
         public static byte[] BufferToBytes(this IBuffer buf)
         {
-
             using (var dataReader = DataReader.FromBuffer(buf))
             {
-
                 var bytes = new byte[buf.Capacity];
-
                 dataReader.ReadBytes(bytes);
-
                 return bytes;
-
             }
-
         }
 
 
 
         public static IBuffer BytesToBuffer(this byte[] bytes)
         {
-
             using (var dataWriter = new DataWriter())
             {
 

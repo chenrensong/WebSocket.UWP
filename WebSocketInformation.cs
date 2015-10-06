@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.Networking;
 using Windows.Networking.Sockets;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
     public class WebSocketInformation : IWebSocketInformation
     {

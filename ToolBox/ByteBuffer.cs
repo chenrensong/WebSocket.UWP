@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebSocketNet.ToolBox
+namespace WebSocket4UWP.ToolBox
 {
     public class ByteBuffer
     {

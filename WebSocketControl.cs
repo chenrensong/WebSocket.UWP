@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.Networking.Sockets;
 using Windows.Security.Credentials;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
     public class WebSocketControl : IWebSocketControl
     {

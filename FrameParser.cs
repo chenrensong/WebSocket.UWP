@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WebSocketNet.ToolBox;
+using WebSocket4UWP.ToolBox;
 using Windows.Storage.Streams;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
     /*
   0                   1                   2                   3
@@ -105,11 +105,14 @@ namespace WebSocketNet
 
             frame.opCode = (data & OPCODE);
 
-            if (Arrays.BinarySearch(OPCODES, frame.opCode) < 0)
+            
+
+            if (Array.BinarySearch<int>(OPCODES, frame.opCode) < 0)
             {
                 throw new Exception("Bad opcode");
             }
-            if (Arrays.BinarySearch(CTRL_OPCODES, frame.opCode) >= 0 && !frame.isFinal)
+
+            if (Array.BinarySearch<int>(CTRL_OPCODES, frame.opCode) >= 0 && !frame.isFinal)
             {
                 throw new Exception("In control opcode, must set FIN");
             }

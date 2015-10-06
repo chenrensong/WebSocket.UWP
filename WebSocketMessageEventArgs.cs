@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WebSocketNet.ToolBox;
+using WebSocket4UWP.ToolBox;
 
-namespace WebSocketNet
+namespace WebSocket4UWP
 {
     public sealed class WebSocketMessageEventArgs
     {
