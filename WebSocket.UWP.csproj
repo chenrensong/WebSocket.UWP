@@ -116,9 +116,16 @@
     <Compile Include="FrameParser.cs" />
     <Compile Include="Http.cs" />
     <Compile Include="InternalSocket.cs" />
+    <Compile Include="Internal\ByteExtensions.cs" />
+    <Compile Include="Internal\ByteOrderExtensions.cs" />
+    <Compile Include="Internal\Consts.cs" />
+    <Compile Include="Internal\Error.cs" />
+    <Compile Include="Internal\Log.cs" />
+    <Compile Include="Internal\LogManager.cs" />
+    <Compile Include="Internal\StringExtensions.cs" />
     <Compile Include="IWebSocket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ToolBox\ByteBuffer.cs" />
+    <Compile Include="Security\Sha1Digest.cs" />
     <Compile Include="ToolBox\Character.cs" />
     <Compile Include="ToolBox\Enumeration.cs" />
     <Compile Include="ToolBox\Extensions.cs" />
@@ -127,6 +134,7 @@
     <Compile Include="WebSocket.Server.cs" />
     <Compile Include="WebSocketClosedEventArgs.cs" />
     <Compile Include="WebSocketControl.cs" />
+    <Compile Include="WebSocketHelper.cs" />
     <Compile Include="WebSocketInformation.cs" />
     <Compile Include="WebSocketMessageEventArgs.cs" />
     <Compile Include="WebSocketMessageType.cs" />

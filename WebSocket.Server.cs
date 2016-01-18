@@ -45,7 +45,7 @@ namespace WebSocket4UWP
                     string key = map["sec-websocket-key"];
                     if (key == null)
                         throw new IOException("missed Sec-WebSocket-Key");
-                    string accept = CreateAccept(key);
+                    string accept = WebSocketHelper.CreateAccept(key);
 
                     string upgrade = map["upgrade"];
                     if (upgrade == null || !upgrade.Equals("websocket", StringComparison.OrdinalIgnoreCase))
@@ -86,7 +86,7 @@ namespace WebSocket4UWP
                     }
 
                     // Read & process frame
-                    for (; ; )
+                    for (;;)
                     {
                         FrameParser.Frame frame = await FrameParser.ReadFrame(stream);
                         await this.ProcessIncomingFrame(frame);

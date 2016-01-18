@@ -101,8 +101,6 @@ namespace WebSocket4UWP
 
             frame.opCode = (data & OPCODE);
 
-
-
             if (Array.BinarySearch<int>(OPCODES, frame.opCode) < 0)
             {
                 throw new Exception("Bad opcode");

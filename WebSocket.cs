@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
 using WebSocket4UWP.ToolBox;
 using Windows.Foundation;
@@ -12,7 +11,9 @@ using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace WebSocket4UWP
 {
-
+    /// <summary>
+    /// WebSocket
+    /// </summary>
     public partial class WebSocket : IWebSocket, IDisposable
     {
 
@@ -20,10 +21,6 @@ namespace WebSocket4UWP
         /// 强制为true，不能使用Server功能
         /// </summary>
         private const bool IS_CLIENT = true;
-        /// <summary>
-        /// 魔法数
-        /// </summary>
-        private const string MAGIC_NUM = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
         private Uri _uri;
         private InternalSocket _socket;
@@ -37,7 +34,7 @@ namespace WebSocket4UWP
         private bool _disposed;
 
         /// <summary>
-        /// 连接建立
+        /// 连接建立成功
         /// </summary>
         public event EventHandler Opened;
         public event EventHandler<WebSocketMessageEventArgs> OnMessage;
@@ -57,13 +54,11 @@ namespace WebSocket4UWP
             }
         }
 
-
         public WebSocket()
         {
             this.Control = new WebSocketControl();
             this.Information = new WebSocketInformation();
         }
-
 
         private void ResetBuffer()
         {
@@ -76,10 +71,6 @@ namespace WebSocket4UWP
             switch (frame.opCode)
             {
                 case FrameParser.OP_CONTINUATION:
-                    //if (this.Control.MessageType == default(WebSocketMessageType))
-                    //{
-                    //    throw new IOException("Unexpected CONTINUATION frame");
-                    //}
                     _stream.Write(frame.payload, 0, frame.payload.Length);
                     if (frame.isFinal)
                     {
@@ -92,7 +83,6 @@ namespace WebSocket4UWP
                         ResetBuffer();
                     }
                     break;
-
                 case FrameParser.OP_TEXT:
                     if (frame.isFinal)
                     {
@@ -174,126 +164,118 @@ namespace WebSocket4UWP
             {
                 throw new Exception("connect() is already called");
             }
+            try
+            {
+                int port = (_uri.Port != -1) ? _uri.Port : (_uri.Scheme.Equals("wss") ? 443 : 80);
+                string path = (_uri.AbsolutePath != null) ? _uri.AbsolutePath : "/";
+                if (_uri.Query != null)
+                {
+                    path += "?" + _uri.Query;
+                }
+                string originScheme = _uri.Scheme.Equals("wss") ? "https" : "http";
+                Uri origin = new Uri(originScheme + "://" + _uri.Host);
+                // To fix: get Origin from extraHeaders if set there.
+                this._socket = new InternalSocket();
+                await this._socket.ConnectAsync(_uri.Host, port);
+                if (_uri.Scheme.Equals("wss"))
+                {
+                    await this._socket.UpgradeToSslAsync(_uri.Host);
+                }
+                string key = WebSocketHelper.CreateClientKey();
+                DataWriter writer = new DataWriter(_socket.OutputStream);
+                writer.WriteString("GET " + path + " HTTP/1.1\r\n");
+                writer.WriteString("Upgrade: websocket\r\n");
+                writer.WriteString("Connection: Upgrade\r\n");
+                writer.WriteString("Host: " + _uri.Host + "\r\n");
+                writer.WriteString("Origin: " + origin.ToString() + "\r\n");
+                writer.WriteString("Sec-WebSocket-Key: " + key + "\r\n");
+                writer.WriteString("Sec-WebSocket-Version: 13\r\n");
+                if (_extraRequestHeaders != null)
+                {
+                    foreach (Http.Header header in _extraRequestHeaders)
+                    {
+                        writer.WriteString(header.ToString() + "\r\n");
+                    }
+                }
+                writer.WriteString("\r\n");
+                await writer.StoreAsync();  //异步发送数据
+                writer.DetachStream();  //分离
+                writer.Dispose();  //结束writer
+                DataReader reader = new DataReader(_socket.InputStream);
+                reader.ByteOrder = ByteOrder.LittleEndian;
+                //// Read HTTP response status line.
+                var startLine = await ReadLine(reader);
+                if (startLine == null)
+                {
+                    throw new Exception("Received no reply from server.");
+                }
+                Http.StatusLine statusLine = new Http.StatusLine(startLine);
+                int statusCode = statusLine.StatusCode;
+                if (statusCode != 101)
+                {
+                    throw new Exception("wrong HTTP response code: " + statusCode);
+                }
 
-            await Task.Factory.StartNew(async () =>
-                  {
+                // Read HTTP response headers.
+                string line;
+                while ((line = await ReadLine(reader)) != null && line.Length > 0)
+                {
+                    Http.Header header = new Http.Header(line);
+                    Debug.WriteLine(line);
 
-                      try
-                      {
-                          int port = (_uri.Port != -1) ? _uri.Port : (_uri.Scheme.Equals("wss") ? 443 : 80);
-                          string path = (_uri.AbsolutePath != null) ? _uri.AbsolutePath : "/";
-                          if (_uri.Query != null)
-                          {
-                              path += "?" + _uri.Query;
-                          }
-                          string originScheme = _uri.Scheme.Equals("wss") ? "https" : "http";
-                          Uri origin = new Uri(originScheme + "://" + _uri.Host);
-                          // To fix: get Origin from extraHeaders if set there.
-                          this._socket = new InternalSocket();
-                          await this._socket.ConnectAsync(_uri.Host, port);
-                          if (_uri.Scheme.Equals("wss"))
-                          {
-                              await this._socket.UpgradeToSslAsync(_uri.Host);
-                          }
-                          string key = CreateSecKey();
-                          DataWriter writer = new DataWriter(_socket.OutputStream);
-                          writer.WriteString("GET " + path + " HTTP/1.1\r\n");
-                          writer.WriteString("Upgrade: websocket\r\n");
-                          writer.WriteString("Connection: Upgrade\r\n");
-                          writer.WriteString("Host: " + _uri.Host + "\r\n");
-                          writer.WriteString("Origin: " + origin.ToString() + "\r\n");
-                          writer.WriteString("Sec-WebSocket-Key: " + key + "\r\n");
-                          writer.WriteString("Sec-WebSocket-Version: 13\r\n");
+                    if (header.HeaderName.Equals("Sec-WebSocket-Accept", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string receivedAccept = header.HeaderValue;
+                        string shouldBeAccept = WebSocketHelper.CreateAccept(key);
+                        if (!receivedAccept.Equals(shouldBeAccept))
+                            throw new Exception("Wrong Sec-WebSocket-Accept: " + receivedAccept + " should be: " + shouldBeAccept);
+                    }
+                    if (_serverResponseHeaders == null)
+                    {
+                        _serverResponseHeaders = new List<Http.Header>();
+                    }
+                    _serverResponseHeaders.Add(header);
 
-                          if (_extraRequestHeaders != null)
-                          {
-                              foreach (Http.Header header in _extraRequestHeaders)
-                              {
-                                  writer.WriteString(header.ToString() + "\r\n");
-                              }
-                          }
-                          writer.WriteString("\r\n");
-                          await writer.StoreAsync();  //异步发送数据
-                          writer.DetachStream();  //分离
-                          writer.Dispose();  //结束writer
-                          DataReader reader = new DataReader(_socket.InputStream);
-                          reader.ByteOrder = ByteOrder.LittleEndian;
-                          //// Read HTTP response status line.
-                          var startLine = await ReadLine(reader);
-                          if (startLine == null)
-                          {
-                              throw new Exception("Received no reply from server.");
-                          }
-                          Http.StatusLine statusLine = new Http.StatusLine(startLine);
-                          int statusCode = statusLine.StatusCode;
-                          if (statusCode != 101)
-                          {
-                              throw new Exception("wrong HTTP response code: " + statusCode);
-                          }
+                }
+                if (this.Opened != null)
+                {
+                    this.Opened(this, EventArgs.Empty);
+                }
+                //Upgrade: websocket
+                //Connection: Upgrade
+                //Sec-WebSocket-Accept: 1xY289lHcEMbLpEBgOYRBBL9N9c=
+                //Sec-WebSocket-Protocol: chat
+                //Content-Type: application/octet-stream
+                //Seq-Id: 667035124
+                // Read & process frame
+                while (true)
+                {
+                    FrameParser.Frame frame = await FrameParser.ReadFrame(reader);
+                    if (frame != null)
+                    {
+                        await ProcessIncomingFrame(frame);
+                    }
 
-                          // Read HTTP response headers.
-                          string line;
-                          while ((line = await ReadLine(reader)) != null && line.Length > 0)
-                          {
-                              Http.Header header = new Http.Header(line);
-                              Debug.WriteLine(line);
-
-                              if (header.HeaderName.Equals("Sec-WebSocket-Accept", StringComparison.OrdinalIgnoreCase))
-                              {
-                                  string receivedAccept = header.HeaderValue;
-                                  string shouldBeAccept = CreateAccept(key);
-                                  if (!receivedAccept.Equals(shouldBeAccept))
-                                      throw new Exception("Wrong Sec-WebSocket-Accept: " + receivedAccept + " should be: " + shouldBeAccept);
-                              }
-                              if (_serverResponseHeaders == null)
-                              {
-                                  _serverResponseHeaders = new List<Http.Header>();
-                              }
-                              _serverResponseHeaders.Add(header);
-
-                          }
-                          if (this.Opened != null)
-                          {
-                              this.Opened(this, EventArgs.Empty);
-                          }
-                          //Upgrade: websocket
-                          //Connection: Upgrade
-                          //Sec-WebSocket-Accept: 1xY289lHcEMbLpEBgOYRBBL9N9c=
-                          //Sec-WebSocket-Protocol: chat
-                          //Content-Type: application/octet-stream
-                          //Seq-Id: 667035124
-                          // Read & process frame
-                          while (true)
-                          {
-                              FrameParser.Frame frame = await FrameParser.ReadFrame(reader);
-
-                              if (frame != null)
-                              {
-                                  await ProcessIncomingFrame(frame);
-                              }
-
-                          }
-                      }
-                      catch (IOException ex)
-                      {
-                          if (this.Closed != null)
-                          {
-                              this.Closed(this, new WebSocketClosedEventArgs(0, "EOF"));
-                          }
-                      }
-                      catch (Exception ex)
-                      {
-                          if (this.Closed != null)
-                          {
-                              this.Closed(this, new WebSocketClosedEventArgs(0, "Exception"));
-                          }
-                      }
-                      finally
-                      {
-                          Disconnect();
-                      }
-
-                  });
+                }
+            }
+            catch (IOException ex)
+            {
+                if (this.Closed != null)
+                {
+                    this.Closed(this, new WebSocketClosedEventArgs(0, "EOF"));
+                }
+            }
+            catch (Exception ex)
+            {
+                if (this.Closed != null)
+                {
+                    this.Closed(this, new WebSocketClosedEventArgs(0, "Exception"));
+                }
+            }
+            finally
+            {
+                Disconnect();
+            }
         }
 
         private void Disconnect()
@@ -357,31 +339,25 @@ namespace WebSocket4UWP
             await SendFrame(frame);
         }
 
-
         private async Task SendFrame(byte[] frame)
         {
-            await Task.Factory.StartNew(async () =>
-                  {
-                      try
-                      {
-                          var outputStream = _socket.OutputStream;
-                          DataWriter writer = new DataWriter(outputStream);
-                          writer.WriteBytes(frame);
-                          await writer.StoreAsync();  //异步发送数据
-                          writer.DetachStream();  //分离
-                          writer.Dispose();  //结束writer
-                      }
-                      catch (IOException ex)
-                      {
-                          if (this.OnError != null)
-                          {
-                              this.OnError(this, ex);
-                          }
-                      }
-
-                  });
+            try
+            {
+                var outputStream = _socket.OutputStream;
+                DataWriter writer = new DataWriter(outputStream);
+                writer.WriteBytes(frame);
+                await writer.StoreAsync();  //异步发送数据
+                writer.DetachStream();  //分离
+                writer.Dispose();  //结束writer
+            }
+            catch (IOException ex)
+            {
+                if (this.OnError != null)
+                {
+                    this.OnError(this, ex);
+                }
+            }
         }
-
 
 
         private async Task<string> ReadLine(DataReader reader)
@@ -409,39 +385,6 @@ namespace WebSocket4UWP
             }
             return stringBuilder.ToString();
         }
-
-
-        private static string GenerateHashedString(byte[] b)
-        {
-            var algorithm = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha1);
-            var buffer = b.BytesToBuffer();
-            var hashedData = algorithm.HashData(buffer);
-            return Convert.ToBase64String(hashedData.BufferToBytes());
-        }
-
-        private static string CreateSecKey()
-        {
-            return Convert.ToBase64String(Encoding.ASCII.GetBytes(
-                Guid.NewGuid().ToString().Substring(0, 16))); ;
-        }
-
-
-        private static string CreateAccept(string key)
-        {
-            string str = key + MAGIC_NUM;
-            byte[] inData = null;
-            try
-            {
-                inData = Encoding.ASCII.GetBytes(str);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("ASCII encoding is not supported");
-            }
-            return GenerateHashedString(inData);
-        }
-
-
 
         public IAsyncAction ConnectAsync(Uri uri)
         {
@@ -551,7 +494,7 @@ namespace WebSocket4UWP
             }
             byte[] frame = FrameParser.BuildFrame(data, FrameParser.OP_CLOSE, code, IS_CLIENT, true);
             await SendFrame(frame);
-            Disconnect();
+            this.Disconnect();
         }
 
     }

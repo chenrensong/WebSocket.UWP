@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSocket.UWP", "WebSocket.UWP.csproj", "{F5CE21D5-F35F-493C-ADC1-D15B7392851E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "..\Demo\Demo.csproj", "{9027CDEE-1E0C-4236-AAB8-46C7319D8309}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,26 @@ Global
 		{F5CE21D5-F35F-493C-ADC1-D15B7392851E}.Release|x64.Build.0 = Release|x64
 		{F5CE21D5-F35F-493C-ADC1-D15B7392851E}.Release|x86.ActiveCfg = Release|x86
 		{F5CE21D5-F35F-493C-ADC1-D15B7392851E}.Release|x86.Build.0 = Release|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|ARM.ActiveCfg = Debug|ARM
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|ARM.Build.0 = Debug|ARM
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|ARM.Deploy.0 = Debug|ARM
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|x64.ActiveCfg = Debug|x64
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|x64.Build.0 = Debug|x64
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|x64.Deploy.0 = Debug|x64
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|x86.ActiveCfg = Debug|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|x86.Build.0 = Debug|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Debug|x86.Deploy.0 = Debug|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|Any CPU.ActiveCfg = Release|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|ARM.ActiveCfg = Release|ARM
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|ARM.Build.0 = Release|ARM
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|ARM.Deploy.0 = Release|ARM
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|x64.ActiveCfg = Release|x64
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|x64.Build.0 = Release|x64
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|x64.Deploy.0 = Release|x64
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|x86.ActiveCfg = Release|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|x86.Build.0 = Release|x86
+		{9027CDEE-1E0C-4236-AAB8-46C7319D8309}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
