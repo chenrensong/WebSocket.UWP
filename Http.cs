@@ -1,5 +1,7 @@
 ﻿using System;
+using WebSocket4UWP.Internal;
 using WebSocket4UWP.ToolBox;
+using Windows.Networking.Sockets;
 
 namespace WebSocket4UWP
 {
@@ -20,6 +22,7 @@ namespace WebSocket4UWP
 
             public Header(string line)
             {
+                
                 int colon = line.IndexOf(':');
                 if (colon == -1)
                 {

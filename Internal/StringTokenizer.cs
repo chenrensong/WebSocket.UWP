@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebSocket4UWP.ToolBox
+namespace WebSocket4UWP.Internal
 {
 
     /**
@@ -76,7 +76,7 @@ namespace WebSocket4UWP.ToolBox
      * @see     java.io.StreamTokenizer
      * @since   JDK1.0
      */
-    public class StringTokenizer : Enumeration<object>
+    internal class StringTokenizer : Enumeration<object>
     {
         private int currentPosition;
         private int newPosition;
@@ -85,8 +85,8 @@ namespace WebSocket4UWP.ToolBox
         private string delimiters;
         private bool retDelims;
         private bool delimsChanged;
-       
-     
+
+
         /**
          * maxDelimCodePoint stores the value of the delimiter character with the
          * highest value. It is used to optimize the detection of delimiter
@@ -443,7 +443,24 @@ namespace WebSocket4UWP.ToolBox
             return count;
         }
 
+    }
 
+
+    internal static class StringTokenizerExtensions
+    {
+        public static int CodePointAt(this string value, int index)
+        {
+            return CodePointAt(value.ToCharArray(), index);
+        }
+
+        public static int CodePointAt(this char[] value, int index)
+        {
+            if ((index < 0) || (index >= value.Length))
+            {
+                throw new IndexOutOfRangeException(index + "");
+            }
+            return Character.CodePointAtImpl(value, index, value.Length);
+        }
     }
 
 }

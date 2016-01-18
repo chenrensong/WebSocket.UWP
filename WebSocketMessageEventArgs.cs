@@ -1,5 +1,6 @@
 ﻿using System;
-using WebSocket4UWP.ToolBox;
+using System.Text;
+using WebSocket4UWP.Internal;
 
 namespace WebSocket4UWP
 {
@@ -27,7 +28,7 @@ namespace WebSocket4UWP
                 }
                 if (this._data != null && string.IsNullOrEmpty(this._text))
                 {
-                    this._text = this._data.BytesToString();
+                    this._text = Encoding.UTF8.GetString(_data, 0, _data.Length); 
                 }
                 return _text;
             }

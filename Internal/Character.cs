@@ -1,6 +1,6 @@
-﻿namespace WebSocket4UWP.ToolBox
+﻿namespace WebSocket4UWP.Internal
 {
-    public class Character
+    internal class Character
     {
 
         public const int MIN_SUPPLEMENTARY_CODE_POINT = 0x010000;

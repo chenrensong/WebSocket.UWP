@@ -1,23 +1,13 @@
 ﻿using System;
-using System.Text;
+using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage.Streams;
+using WebSocket4UWP.Internal;
 
-namespace WebSocket4UWP.Internal
+namespace WebSocket4UWP.ToolBox
 {
-    internal static class ByteExtensions
+    public static class ByteExtensions
     {
-        public static string BytesToString(this byte[] buffer)
-        {
-            try
-            {
-                return Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-
         public static byte[] CopyOfRange(this byte[] original, int from, int to)
         {
             int newLength = to - from;
@@ -28,14 +18,20 @@ namespace WebSocket4UWP.Internal
             return copy;
         }
 
-        public static byte[] ToBytes(this IBuffer buf)
+        public static IBuffer ToBuffer(this IRandomAccessStream randomStream)
         {
-            using (var dataReader = DataReader.FromBuffer(buf))
+            Stream stream = WindowsRuntimeStreamExtensions.AsStreamForRead(randomStream.GetInputStreamAt(0));
+            var memoryStream = new MemoryStream();
+            if (stream != null)
             {
-                var bytes = new byte[buf.Capacity];
-                dataReader.ReadBytes(bytes);
-                return bytes;
+                byte[] bytes = stream.ToByteArray();
+                if (bytes != null)
+                {
+                    var binaryWriter = new BinaryWriter(memoryStream);
+                    binaryWriter.Write(bytes);
+                }
             }
+            return WindowsRuntimeBufferExtensions.GetWindowsRuntimeBuffer(memoryStream, 0, (int)memoryStream.Length);
         }
 
         public static IBuffer ToBuffer(this string str)
@@ -59,6 +55,25 @@ namespace WebSocket4UWP.Internal
         public static int ToBit(this bool value)
         {
             return value ? 1 : 0;
+        }
+
+        public static byte[] ToByteArray(this Stream stream)
+        {
+            byte[] bytes = new byte[stream.Length];
+            stream.Seek(0, SeekOrigin.Begin);
+            stream.Read(bytes, 0, bytes.Length);
+            stream.Seek(0, SeekOrigin.Begin);
+            return bytes;
+        }
+
+        public static byte[] ToByteArray(this IBuffer buf)
+        {
+            using (var dataReader = DataReader.FromBuffer(buf))
+            {
+                var bytes = new byte[buf.Capacity];
+                dataReader.ReadBytes(bytes);
+                return bytes;
+            }
         }
 
         public static byte[] ToByteArray(this bool value, ByteOrder byteOrder)

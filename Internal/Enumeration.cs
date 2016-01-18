@@ -1,4 +1,4 @@
-﻿namespace WebSocket4UWP.ToolBox
+﻿namespace WebSocket4UWP.Internal
 {
 
     /**

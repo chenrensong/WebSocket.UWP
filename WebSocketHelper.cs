@@ -5,7 +5,7 @@ using WebSocket4UWP.Security;
 
 namespace WebSocket4UWP
 {
-    public class WebSocketHelper
+    internal class WebSocketHelper
     {
         private static readonly Random _rnd = new Random();
 
@@ -38,6 +38,36 @@ namespace WebSocket4UWP
             return calculatedAccept;
         }
 
+
+        public static Uri CreateWebSocketUri(Uri sourceUri)
+        {
+            if (sourceUri == null)
+                throw new ArgumentException(Error.MustNotBeNullOrEmpty, "sourceUri");
+
+
+            var uri = sourceUri;
+            if (!uri.IsAbsoluteUri)
+                throw new ArgumentException(Error.NotAnAbsoluteUri, "sourceUri");
+
+            var scheme = uri.Scheme;
+            if (scheme != "ws" && scheme != "wss")
+                throw new ArgumentException(Error.InvalidScheme + scheme, "sourceUri");
+
+            var fragment = uri.Fragment;
+            if (fragment.Length > 0)
+                throw new ArgumentException(Error.MustNotContainAFragment, "sourceUri");
+
+
+            var port = uri.Port;
+            if (port == 0)
+            {
+                port = scheme == "ws" ? 80 : 443;
+                var url = String.Format("{0}://{1}:{2}{3}{4}", scheme, uri.Host, port, uri.LocalPath, uri.Query);
+                uri = new Uri(url);
+            }
+
+            return uri;
+        }
 
 
     }

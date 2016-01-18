@@ -5,9 +5,9 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
-using WebSocket4UWP.ToolBox;
 using Windows.Foundation;
 using System.Runtime.InteropServices.WindowsRuntime;
+using WebSocket4UWP.ToolBox;
 
 namespace WebSocket4UWP
 {
@@ -16,7 +16,6 @@ namespace WebSocket4UWP
     /// </summary>
     public partial class WebSocket : IWebSocket, IDisposable
     {
-
         /// <summary>
         /// 强制为true，不能使用Server功能
         /// </summary>
@@ -27,7 +26,7 @@ namespace WebSocket4UWP
         private List<Http.Header> _extraRequestHeaders = null;
         private List<Http.Header> _serverResponseHeaders = null;
 
-        private Stream _stream = new MemoryStream();
+        private IRandomAccessStream _stream = new InMemoryRandomAccessStream();
         private bool _closed;
         private string _host; // set in server websocket to check in onConnect();
         private string _origin; // set in server websocket to check in onConnect();
@@ -41,11 +40,8 @@ namespace WebSocket4UWP
         public event TypedEventHandler<IWebSocket, WebSocketClosedEventArgs> Closed;
         public event EventHandler<Exception> OnError;
         public event EventHandler<byte[]> OnPong;
-
         public WebSocketControl Control { get; private set; }
-
         public WebSocketInformation Information { get; private set; }
-
         public IOutputStream OutputStream
         {
             get
@@ -60,27 +56,21 @@ namespace WebSocket4UWP
             this.Information = new WebSocketInformation();
         }
 
-        private void ResetBuffer()
-        {
-            this.Control.MessageType = default(WebSocketMessageType);
-            _stream.Seek(0, SeekOrigin.Begin);
-        }
-
         private async Task ProcessIncomingFrame(FrameParser.Frame frame)
         {
             switch (frame.opCode)
             {
                 case FrameParser.OP_CONTINUATION:
-                    _stream.Write(frame.payload, 0, frame.payload.Length);
+                    await _stream.WriteAsync(frame.payload?.ToBuffer());
                     if (frame.isFinal)
                     {
-                        byte[] message = _stream.StreamToBytes();
+                        var buffer = _stream.ToBuffer();
+                        byte[] message = buffer.ToByteArray();
                         if (this.OnMessage != null)
                         {
                             this.OnMessage(this, new WebSocketMessageEventArgs(this.Control.MessageType, message));
                         }
-
-                        ResetBuffer();
+                        this.ResetStream();
                     }
                     break;
                 case FrameParser.OP_TEXT:
@@ -93,15 +83,14 @@ namespace WebSocket4UWP
                     }
                     else
                     {
-                        if (_stream.Length != 0)
+                        if (_stream.Size != 0)
                         {
                             throw new IOException("no FIN frame");
                         }
                         this.Control.MessageType = WebSocketMessageType.Text;
-                        _stream.Write(frame.payload, 0, frame.payload.Length);
+                        await _stream.WriteAsync(frame.payload.ToBuffer());
                     }
                     break;
-
                 case FrameParser.OP_BINARY:
                     if (frame.isFinal)
                     {
@@ -112,15 +101,14 @@ namespace WebSocket4UWP
                     }
                     else
                     {
-                        if (_stream.Length != 0)
+                        if (_stream.Size != 0)
                         {
                             throw new IOException("no FIN frame");
                         }
                         this.Control.MessageType = WebSocketMessageType.Binary;
-                        _stream.Write(frame.payload, 0, frame.payload.Length);
+                        await _stream.WriteAsync(frame.payload.ToBuffer());
                     }
                     break;
-
                 case FrameParser.OP_CLOSE:
                     int code = 0;
                     if (frame.payload.Length >= 2)
@@ -130,16 +118,15 @@ namespace WebSocket4UWP
                     string reason = null;
                     if (frame.payload.Length > 2)
                     {
-                        reason = frame.payload.CopyOfRange(2, frame.payload.Length).BytesToString();
+                        var temp = frame.payload.CopyOfRange(2, frame.payload.Length);
+                        reason = Encoding.UTF8.GetString(temp, 0, temp.Length);
                     }
                     if (this.Closed != null)
                     {
                         this.Closed(this, new WebSocketClosedEventArgs(code, reason));
                     }
-
-                    Disconnect();
+                    this.Disconnect();
                     break;
-
                 case FrameParser.OP_PING:
                     if (frame.payload.Length > 125)
                     {
@@ -148,7 +135,6 @@ namespace WebSocket4UWP
                     byte[] data = FrameParser.BuildFrame(frame.payload, FrameParser.OP_PONG, -1, IS_CLIENT, true);
                     await SendFrame(data);
                     break;
-
                 case FrameParser.OP_PONG:
                     if (this.OnPong != null)
                     {
@@ -269,7 +255,7 @@ namespace WebSocket4UWP
             {
                 if (this.Closed != null)
                 {
-                    this.Closed(this, new WebSocketClosedEventArgs(0, "Exception"));
+                    this.Closed(this, new WebSocketClosedEventArgs(0, ex.Message));
                 }
             }
             finally
@@ -314,7 +300,7 @@ namespace WebSocket4UWP
             {
                 return;
             }
-            byte[] data = str.StringToBytes();
+            byte[] data = Encoding.UTF8.GetBytes(str);
             byte[] frame = FrameParser.BuildFrame(data, isFirst ? FrameParser.OP_TEXT : FrameParser.OP_CONTINUATION, -1, IS_CLIENT, isLast);
             await SendFrame(frame);
         }
@@ -329,6 +315,11 @@ namespace WebSocket4UWP
             await SendFrame(frame);
         }
 
+        /// <summary>
+        /// Ping
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public async Task Ping(byte[] data = null)
         {
             if (_closed)
@@ -337,53 +328,6 @@ namespace WebSocket4UWP
             }
             byte[] frame = FrameParser.BuildFrame(data, FrameParser.OP_PING, -1, IS_CLIENT, true);
             await SendFrame(frame);
-        }
-
-        private async Task SendFrame(byte[] frame)
-        {
-            try
-            {
-                var outputStream = _socket.OutputStream;
-                DataWriter writer = new DataWriter(outputStream);
-                writer.WriteBytes(frame);
-                await writer.StoreAsync();  //异步发送数据
-                writer.DetachStream();  //分离
-                writer.Dispose();  //结束writer
-            }
-            catch (IOException ex)
-            {
-                if (this.OnError != null)
-                {
-                    this.OnError(this, ex);
-                }
-            }
-        }
-
-
-        private async Task<string> ReadLine(DataReader reader)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            await reader.LoadAsync(sizeof(byte));
-
-            int readChar = reader.ReadByte();
-            if (readChar == -1)
-            {
-                return null;
-            }
-            while (readChar != '\n')
-            {
-                if (readChar != '\r')
-                {
-                    stringBuilder.Append((char)readChar);
-                }
-                await reader.LoadAsync(sizeof(byte));
-                readChar = reader.ReadByte();
-                if (readChar == -1)
-                {
-                    return null;
-                }
-            }
-            return stringBuilder.ToString();
         }
 
         public IAsyncAction ConnectAsync(Uri uri)
@@ -495,6 +439,67 @@ namespace WebSocket4UWP
             byte[] frame = FrameParser.BuildFrame(data, FrameParser.OP_CLOSE, code, IS_CLIENT, true);
             await SendFrame(frame);
             this.Disconnect();
+        }
+
+        /// <summary>
+        /// Send Frame
+        /// </summary>
+        /// <param name="frame"></param>
+        /// <returns></returns>
+        private async Task SendFrame(byte[] frame)
+        {
+            try
+            {
+                var outputStream = _socket.OutputStream;
+                DataWriter writer = new DataWriter(outputStream);
+                writer.WriteBytes(frame);
+                await writer.StoreAsync();  //异步发送数据
+                writer.DetachStream();  //分离
+                writer.Dispose();  //结束writer
+            }
+            catch (IOException ex)
+            {
+                if (this.OnError != null)
+                {
+                    this.OnError(this, ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 重置Stream
+        /// </summary>
+        private void ResetStream()
+        {
+            this.Control.MessageType = default(WebSocketMessageType);
+            _stream?.Dispose();
+            _stream = new InMemoryRandomAccessStream();
+        }
+
+        private async Task<string> ReadLine(DataReader reader)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            await reader.LoadAsync(sizeof(byte));
+
+            int readChar = reader.ReadByte();
+            if (readChar == -1)
+            {
+                return null;
+            }
+            while (readChar != '\n')
+            {
+                if (readChar != '\r')
+                {
+                    stringBuilder.Append((char)readChar);
+                }
+                await reader.LoadAsync(sizeof(byte));
+                readChar = reader.ReadByte();
+                if (readChar == -1)
+                {
+                    return null;
+                }
+            }
+            return stringBuilder.ToString();
         }
 
     }
