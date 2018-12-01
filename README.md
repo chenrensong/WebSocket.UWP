@@ -2,7 +2,7 @@
 
 WebSocket.UWP是基于Windows.Networking.Sockets.StreamSocket的WebSocket客户端实现，能良好的运行在 Windows Universal Platform。
 
-该项目初衷是为了让 贴吧UWP 支持WebSocket,目前开放出来供大家研究，使用方法如下：
+该项目初衷是为了让 贴吧UWP 支持WebSocket，目前开放出来供大家研究，使用方法如下：
 
 ```
       _socket = new WebSocket();

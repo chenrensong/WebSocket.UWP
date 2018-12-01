@@ -215,3 +215,4 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 /.vs/WebSocket.UWP/v15/Server/sqlite3
+/.vs/config
